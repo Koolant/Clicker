@@ -17,3 +17,5 @@ This is a solution I built to fulfill the following user stories:
   I can close the program and reopen it with state maintained.
   
   I can save and reload interval/coordinate combinations.
+
+TODO: Maintain saved combinations between sessions.
