@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Collections;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 
 namespace Clicker
 {
@@ -105,13 +107,33 @@ namespace Clicker
         }
 
         string[,] propArr = new string[10, 4];
-
+        BindingList<ExTemplate> saveList = new BindingList<ExTemplate>();
+        
         private void Form1_Load(object sender, EventArgs e)
         {
             if (Properties.Settings.Default["SaveCollection"] != null)
             {
                 //propArr = Properties.Settings.Default["SaveCollection"] as IEnumerable;
             }
+
+            Stream stream = File.OpenRead(Environment.CurrentDirectory + "//savedstuff.txt");
+
+            if (stream.Length > 0)
+            {
+                XmlSerializer xml = new XmlSerializer(typeof(BindingList<ExTemplate>));
+                try
+                {
+                    saveList = xml.Deserialize(stream) as BindingList<ExTemplate>;
+                }
+                catch
+                {
+                    stream.Close();
+                    File.WriteAllText(Environment.CurrentDirectory + "//savedstuff.txt", string.Empty);
+                }
+            }
+            listBox1.DataSource = saveList;
+            listBox1.DisplayMember = "name";
+            stream.Close();
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
@@ -127,6 +149,12 @@ namespace Clicker
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Properties.Settings.Default.Save();
+            File.WriteAllText(Environment.CurrentDirectory + "//savedstuff.txt", string.Empty);
+            Stream stream = File.OpenWrite(Environment.CurrentDirectory + "//savedstuff.txt");
+            XmlSerializer xml = new XmlSerializer(typeof(BindingList<ExTemplate>));
+            xml.Serialize(stream, saveList);
+            stream.Close();
+
         }
 
         private void posX_TextChanged(object sender, EventArgs e)
@@ -141,16 +169,43 @@ namespace Clicker
         
         private void button3_Click(object sender, EventArgs e)
         {
-
             int dexer = Decimal.ToInt32(numericUpDown1.Value);
 
+            /*if (saveList[dexer] != null)
+            {
+                saveList[dexer].interval1 = Properties.Settings.Default["Interval1"].ToString();
+                saveList[dexer].interval2 = Properties.Settings.Default["Interval2"].ToString();
+                saveList[dexer].positionx = Properties.Settings.Default["PositionX"].ToString();
+                saveList[dexer].positiony = Properties.Settings.Default["PositionY"].ToString();
+            }
+            else
+            {*/
+            string name;
+
+            if (textBox3.Text.Trim() == "")
+            {
+                name = "Unnamed";
+            }
+            else
+            {
+                name = textBox3.Text;
+            }
+                saveList.Add(new ExTemplate(
+                     name,
+                     Properties.Settings.Default["Interval1"].ToString(),
+                     Properties.Settings.Default["Interval2"].ToString(),
+                     Properties.Settings.Default["PositionX"].ToString(),
+                     Properties.Settings.Default["PositionY"].ToString()
+                    )
+                   );
+            //}
+           
             propArr[dexer, 0] = Properties.Settings.Default["Interval1"].ToString();
             propArr[dexer, 1] = Properties.Settings.Default["Interval2"].ToString();
             propArr[dexer, 2] = Properties.Settings.Default["PositionX"].ToString();
             propArr[dexer, 3] = Properties.Settings.Default["PositionY"].ToString();
-
             //Properties.Settings.Default["SaveCollection"] = propArr;
-
+            
         }
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
@@ -165,6 +220,27 @@ namespace Clicker
                 posY.Text = propArr[dexer, 3];
             }
             
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBox1.SelectedItem != null)
+            {
+                ExTemplate myEntry = listBox1.SelectedItem as ExTemplate;
+
+                textBox1.Text = myEntry.interval1;
+                textBox2.Text = myEntry.interval2;
+                posX.Text = myEntry.positionx;
+                posY.Text = myEntry.positiony;
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (listBox1.SelectedItem != null)
+            {
+                saveList.Remove(listBox1.SelectedItem as ExTemplate);
+            }
         }
     }
 }

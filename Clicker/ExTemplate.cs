@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Clicker
 {
-    class ExTemplate
+    public class ExTemplate
     {
         public string name { get; set; }
         public string interval1 { get; set; }
@@ -14,6 +14,10 @@ namespace Clicker
         public string positionx { get; set; }
         public string positiony { get; set; }
 
+        public ExTemplate()
+        {
+
+        }
         public ExTemplate (string name, string ival1, string ival2, string x, string y)
         {
             this.name = name;
